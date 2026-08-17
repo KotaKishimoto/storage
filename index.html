@@ -115,24 +115,6 @@
         document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
     }
 
-    /* クラウドからデータ取得 */
-    async function loadCloudData() {
-        if (!GAS_API_URL || GAS_API_URL.includes("https://script.google.com/macros/s/AKfycbyKKEDT3jim2-w0PGKcWKnqQXSLijTYRl373C-00VAvaSFNkDHxxoaoSP4XUTQFYjOtnw/exec")) {
-            alert("GASのWebアプリURLが設定されていません。");
-            return;
-        }
-        showLoading(true);
-        try {
-            const res = await fetch(GAS_API_URL);
-            inventory = await res.json();
-            renderTable();
-        } catch (err) {
-            alert("クラウドデータの取得に失敗しました");
-            console.error(err);
-        } finally {
-            showLoading(false);
-        }
-    }
 
     /* クラウドへ全データ送信 */
     async function saveToCloud() {
