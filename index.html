@@ -38,6 +38,76 @@
         .ds-link:hover { text-decoration: underline; }
         /* ローディング表示用 */
         #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 1000; justify-content: center; align-items: center; font-weight: bold; }
+         /* スマホ・タブレット用レイアウト調整 (画面幅768px以下) */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px 10px;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    /* 入力フォームを1列に並べてタップしやすくする */
+    .form-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group, .form-group.flex-wide {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    /* 単位入力欄のサイズ調整 */
+    .unit-input-group input {
+        min-width: 0;
+    }
+
+    /* ボタンを押しやすいサイズに拡大 */
+    .btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .btn-add {
+        height: auto;
+    }
+
+    .search-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    /* テーブルの文字サイズと余白を詰める */
+    table {
+        font-size: 11px;
+    }
+
+    th, td {
+        padding: 4px 3px;
+    }
+
+    .cell-input {
+        font-size: 11px;
+        padding: 2px;
+    }
+
+    .cell-input-num {
+        width: 45px;
+    }
+}   
+    
     </style>
 </head>
 <body>
