@@ -117,21 +117,31 @@
 
 
     /* クラウドへ全データ送信 */
-    async function saveToCloud() {
-        showLoading(true);
-        try {
-            await fetch(GAS_API_URL, {
-                method: 'POST',
-                body: JSON.stringify(inventory)
-            });
+   /* クラウドへ全データ送信 */
+async function saveToCloud() {
+    showLoading(true);
+    try {
+        const res = await fetch(GAS_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8', // GASの制限回避のためtext/plainに指定
+            },
+            body: JSON.stringify(inventory)
+        });
+        
+        const result = await res.json();
+        if (result.status === 'error') {
+            alert('GASエラー: ' + result.message);
+        } else {
             renderTable();
-        } catch (err) {
-            alert("クラウドへの保存に失敗しました");
-            console.error(err);
-        } finally {
-            showLoading(false);
         }
+    } catch (err) {
+        alert("クラウドへの保存に失敗しました。コンソールログを確認してください。");
+        console.error(err);
+    } finally {
+        showLoading(false);
     }
+}
 
     function formatValueWithUnit(inputId, unitId) {
         const num = document.getElementById(inputId).value.trim();
