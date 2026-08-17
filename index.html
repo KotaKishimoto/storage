@@ -106,42 +106,60 @@
 </div>
 
 <script>
-    // ★ここに取得した Web アプリの URL を貼り付けてください
+    // ★ Step 1で取得した /exec で終わるURLを貼り付けます
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyKKEDT3jim2-w0PGKcWKnqQXSLijTYRl373C-00VAvaSFNkDHxxoaoSP4XUTQFYjOtnw/exec";
 
     let inventory = [];
 
     function showLoading(show) {
-        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.style.display = show ? 'flex' : 'none';
     }
 
+    /* クラウドからデータ取得 */
+    async function loadCloudData() {
+        if (!GAS_API_URL || GAS_API_URL.includes("https://script.google.com/macros/s/AKfycbyKKEDT3jim2-w0PGKcWKnqQXSLijTYRl373C-00VAvaSFNkDHxxoaoSP4XUTQFYjOtnw/exec")) {
+            alert("GASのWebアプリURLが設定されていません。");
+            return;
+        }
+        showLoading(true);
+        try {
+            const res = await fetch(GAS_API_URL);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            inventory = await res.json();
+            renderTable();
+        } catch (err) {
+            alert("クラウドデータの取得に失敗しました。URLまたはアクセス権限を確認してください。");
+            console.error(err);
+        } finally {
+            showLoading(false);
+        }
+    }
 
     /* クラウドへ全データ送信 */
-   /* クラウドへ全データ送信 */
-async function saveToCloud() {
-    showLoading(true);
-    try {
-        const res = await fetch(GAS_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8', // GASの制限回避のためtext/plainに指定
-            },
-            body: JSON.stringify(inventory)
-        });
-        
-        const result = await res.json();
-        if (result.status === 'error') {
-            alert('GASエラー: ' + result.message);
-        } else {
-            renderTable();
+    async function saveToCloud() {
+        showLoading(true);
+        try {
+            const res = await fetch(GAS_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(inventory)
+            });
+            const result = await res.json();
+            if (result.status === 'error') {
+                alert('GASエラー: ' + result.message);
+            } else {
+                renderTable();
+            }
+        } catch (err) {
+            alert("クラウドへの保存に失敗しました");
+            console.error(err);
+        } finally {
+            showLoading(false);
         }
-    } catch (err) {
-        alert("クラウドへの保存に失敗しました。コンソールログを確認してください。");
-        console.error(err);
-    } finally {
-        showLoading(false);
     }
-}
 
     function formatValueWithUnit(inputId, unitId) {
         const num = document.getElementById(inputId).value.trim();
@@ -191,7 +209,6 @@ async function saveToCloud() {
         const item = inventory.find(i => i.id === id);
         if (item) {
             item[field] = value;
-            // 編集完了時にクラウドに自動保存
             saveToCloud();
         }
     }
@@ -205,6 +222,8 @@ async function saveToCloud() {
 
     function renderTable() {
         const list = document.getElementById('inventoryList');
+        if (!list) return;
+        
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const filterCat = document.getElementById('filterCategory').value;
 
@@ -303,8 +322,10 @@ async function saveToCloud() {
         reader.readAsText(file);
     }
 
-    // 初期化：クラウドからデータ取得
-    loadCloudData();
+    // ページロード時にデータ読み込み
+    window.addEventListener('DOMContentLoaded', () => {
+        loadCloudData();
+    });
 </script>
 </body>
 </html>
