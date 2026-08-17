@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>回路部品・在庫管理システム (GAS連携版)</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1750px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #333; margin-top: 0; margin-bottom: 20px; }
+        .panel { background-color: #eef2f7; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; align-items: flex-end; }
+        .form-group { display: flex; flex-direction: column; flex: 1; min-width: 130px; }
+        .form-group.flex-wide { flex: 2; min-width: 200px; }
+        label { font-size: 11px; color: #555; font-weight: bold; margin-bottom: 4px; }
+        input[type="text"], input[type="number"], select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; }
+        .unit-input-group { display: flex; gap: 4px; }
+        .unit-input-group input { flex: 1; min-width: 60px; }
+        .unit-input-group select { width: 65px; padding: 8px 4px; }
+        .btn-container { margin-top: 10px; }
+        .btn { padding: 9px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.2s, opacity 0.2s; font-size: 13px; }
+        .btn:hover { opacity: 0.85; }
+        .btn-add { background-color: #007bff; color: #ffffff; height: 37px; white-space: nowrap; }
+        .btn-csv { background-color: #6c757d; color: #ffffff; margin-right: 5px; }
+        .search-group { background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #1a73e8; display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-input { flex: 2; border: 1px solid #1a73e8; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th { background-color: #f8f9fa; padding: 10px 8px; border-bottom: 2px solid #dee2e6; text-align: left; white-space: nowrap; }
+        td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; background: #e8eaed; color: #5f6368; white-space: nowrap; }
+        .cell-input { width: 100%; border: 1px solid transparent; background: transparent; padding: 4px; box-sizing: border-box; border-radius: 3px; }
+        .cell-input:focus { border: 1px solid #1a73e8; background: #ffffff; outline: none; }
+        .cell-input-num { width: 65px; }
+        .delete-btn { color: #d93025; background: none; border: none; cursor: pointer; font-size: 12px; padding: 4px; }
+        .delete-btn:hover { text-decoration: underline; }
+        .ds-link { color: #1a73e8; text-decoration: none; font-size: 12px; margin-left: 4px; white-space: nowrap; }
+        .ds-link:hover { text-decoration: underline; }
+        /* ローディング表示用 */
+        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 1000; justify-content: center; align-items: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay">クラウド同期中...</div>
+
+<div class="container">
+    <h1>回路部品・在庫管理システム (スプレッドシート連携)</h1>
+
+    <div class="panel">
+        <div class="form-row">
+            <div class="form-group"><label for="itemName">品名</label><input type="text" id="itemName" placeholder="例: 水晶発振器 / PWM IC"></div>
+            <div class="form-group"><label for="itemPartNumber">型番</label><input type="text" id="itemPartNumber" placeholder="例: MB3759 / NE555"></div>
+            <div class="form-group">
+                <label for="itemCategory">カテゴリ</label>
+                <select id="itemCategory">
+                    <option value="電子部品">電子部品</option>
+                    <option value="締結部品">締結部品</option>
+                    <option value="スプレー">スプレー</option>
+                    <option value="道具">道具</option>
+                </select>
+            </div>
+            <div class="form-group"><label for="itemQty">在庫数</label><input type="number" id="itemQty" placeholder="個数"></div>
+            <div class="form-group flex-wide"><label for="valDatasheet">データシート (URL / 備考)</label><input type="text" id="valDatasheet" placeholder="https://example.com/datasheet.pdf"></div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group"><label>電流</label><div class="unit-input-group"><input type="number" id="valCurrentNum" step="0.01" placeholder="数値"><select id="valCurrentUnit"><option value="mA">mA</option><option value="A">A</option></select></div></div>
+            <div class="form-group"><label>抵抗</label><div class="unit-input-group"><input type="number" id="valResistNum" step="0.1" placeholder="数値"><select id="valResistUnit"><option value="Ω">Ω</option><option value="kΩ">kΩ</option><option value="MΩ">MΩ</option></select></div></div>
+            <div class="form-group"><label>直流電圧</label><div class="unit-input-group"><input type="number" id="valVdcNum" step="0.1" placeholder="数値"><select id="valVdcUnit"><option value="Vdc">Vdc</option><option value="mVdc">mVdc</option></select></div></div>
+            <div class="form-group"><label>静電容量</label><div class="unit-input-group"><input type="number" id="valCapNum" step="0.01" placeholder="数値"><select id="valCapUnit"><option value="μF">μF</option><option value="pF">pF</option><option value="nF">nF</option><option value="F">F</option></select></div></div>
+            <div class="form-group"><label>交流電圧</label><div class="unit-input-group"><input type="number" id="valVacNum" step="0.1" placeholder="数値"><select id="valVacUnit"><option value="Vac">Vac</option><option value="mVac">mVac</option></select></div></div>
+            <div class="form-group"><label>発振周波数</label><div class="unit-input-group"><input type="number" id="valFreqNum" step="0.001" placeholder="数値"><select id="valFreqUnit"><option value="kHz">kHz</option><option value="MHz">MHz</option><option value="Hz">Hz</option><option value="GHz">GHz</option></select></div></div>
+            <button class="btn btn-add" onclick="addItem()">データ追加</button>
+        </div>
+
+        <div class="search-group">
+            <input type="text" id="searchInput" class="search-input" placeholder="品名・型番・規格値・データシートで検索..." oninput="renderTable()">
+            <select id="filterCategory" onchange="renderTable()">
+                <option value="all">すべてのカテゴリ</option>
+                <option value="電子部品">電子部品</option>
+                <option value="締結部品">締結部品</option>
+                <option value="スプレー">スプレー</option>
+                <option value="道具">道具</option>
+            </select>
+            <button class="btn btn-csv" onclick="loadCloudData()">最新データ取得 🔄</button>
+        </div>
+
+        <div class="btn-container">
+            <button class="btn btn-csv" onclick="exportCSV()">CSV保存</button>
+            <button class="btn btn-csv" onclick="document.getElementById('csvFile').click()">CSV読込</button>
+            <input type="file" id="csvFile" style="display:none" accept=".csv" onchange="importCSV(event)">
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>カテゴリ</th><th>品名</th><th>型番</th><th>在庫</th><th>電流</th><th>抵抗</th><th>直流電圧</th><th>容量</th><th>交流電圧</th><th>発振周波数</th><th>データシート</th><th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryList"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // ★ここに取得した Web アプリの URL を貼り付けてください
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyKKEDT3jim2-w0PGKcWKnqQXSLijTYRl373C-00VAvaSFNkDHxxoaoSP4XUTQFYjOtnw/exec";
+
+    let inventory = [];
+
+    function showLoading(show) {
+        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    }
+
+    /* クラウドからデータ取得 */
+    async function loadCloudData() {
+        if (!GAS_API_URL || GAS_API_URL.includes("https://script.google.com/macros/s/AKfycbyKKEDT3jim2-w0PGKcWKnqQXSLijTYRl373C-00VAvaSFNkDHxxoaoSP4XUTQFYjOtnw/exec")) {
+            alert("GASのWebアプリURLが設定されていません。");
+            return;
+        }
+        showLoading(true);
+        try {
+            const res = await fetch(GAS_API_URL);
+            inventory = await res.json();
+            renderTable();
+        } catch (err) {
+            alert("クラウドデータの取得に失敗しました");
+            console.error(err);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /* クラウドへ全データ送信 */
+    async function saveToCloud() {
+        showLoading(true);
+        try {
+            await fetch(GAS_API_URL, {
+                method: 'POST',
+                body: JSON.stringify(inventory)
+            });
+            renderTable();
+        } catch (err) {
+            alert("クラウドへの保存に失敗しました");
+            console.error(err);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function formatValueWithUnit(inputId, unitId) {
+        const num = document.getElementById(inputId).value.trim();
+        const unit = document.getElementById(unitId).value;
+        return num ? `${num}${unit}` : '';
+    }
+
+    async function addItem() {
+        const nameInput = document.getElementById('itemName');
+        const name = nameInput.value.trim();
+        if (!name) { alert('品名を入力してください'); return; }
+
+        const newItem = {
+            id: Date.now(),
+            name: name,
+            partNumber: document.getElementById('itemPartNumber').value.trim(),
+            category: document.getElementById('itemCategory').value,
+            qty: parseInt(document.getElementById('itemQty').value, 10) || 0,
+            current: formatValueWithUnit('valCurrentNum', 'valCurrentUnit'),
+            resist: formatValueWithUnit('valResistNum', 'valResistUnit'),
+            vdc: formatValueWithUnit('valVdcNum', 'valVdcUnit'),
+            cap: formatValueWithUnit('valCapNum', 'valCapUnit'),
+            vac: formatValueWithUnit('valVacNum', 'valVacUnit'),
+            freq: formatValueWithUnit('valFreqNum', 'valFreqUnit'),
+            datasheet: document.getElementById('valDatasheet').value.trim()
+        };
+
+        inventory.push(newItem);
+        clearInputForm();
+        await saveToCloud();
+    }
+
+    function clearInputForm() {
+        document.getElementById('itemName').value = '';
+        document.getElementById('itemPartNumber').value = '';
+        document.getElementById('itemQty').value = '';
+        document.getElementById('valCurrentNum').value = '';
+        document.getElementById('valResistNum').value = '';
+        document.getElementById('valVdcNum').value = '';
+        document.getElementById('valCapNum').value = '';
+        document.getElementById('valVacNum').value = '';
+        document.getElementById('valFreqNum').value = '';
+        document.getElementById('valDatasheet').value = '';
+    }
+
+    function updateField(id, field, value) {
+        const item = inventory.find(i => i.id === id);
+        if (item) {
+            item[field] = value;
+            // 編集完了時にクラウドに自動保存
+            saveToCloud();
+        }
+    }
+
+    async function deleteItem(id) {
+        if (confirm('削除しますか？')) {
+            inventory = inventory.filter(i => i.id !== id);
+            await saveToCloud();
+        }
+    }
+
+    function renderTable() {
+        const list = document.getElementById('inventoryList');
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filterCat = document.getElementById('filterCategory').value;
+
+        list.innerHTML = '';
+
+        const displayList = inventory.filter(item => {
+            const matchesSearch = 
+                (item.name && item.name.toLowerCase().includes(searchTerm)) ||
+                (item.partNumber && item.partNumber.toLowerCase().includes(searchTerm)) ||
+                (item.current && item.current.toLowerCase().includes(searchTerm)) ||
+                (item.resist && item.resist.toLowerCase().includes(searchTerm)) ||
+                (item.vdc && item.vdc.toLowerCase().includes(searchTerm)) ||
+                (item.cap && item.cap.toLowerCase().includes(searchTerm)) ||
+                (item.vac && item.vac.toLowerCase().includes(searchTerm)) ||
+                (item.freq && item.freq.toLowerCase().includes(searchTerm)) ||
+                (item.datasheet && item.datasheet.toLowerCase().includes(searchTerm));
+
+            const matchesCategory = (filterCat === 'all' || item.category === filterCat);
+            return matchesSearch && matchesCategory;
+        });
+
+        displayList.forEach(item => {
+            const tr = document.createElement('tr');
+            const dsValue = item.datasheet || '';
+            const isUrl = dsValue.startsWith('http://') || dsValue.startsWith('https://');
+            const linkHtml = isUrl ? `<a href="${dsValue}" target="_blank" rel="noopener noreferrer" class="ds-link">開く 🔗</a>` : '';
+
+            tr.innerHTML = `
+                <td><span class="badge">${item.category}</span></td>
+                <td><input type="text" class="cell-input" value="${item.name || ''}" onchange="updateField(${item.id}, 'name', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.partNumber || ''}" onchange="updateField(${item.id}, 'partNumber', this.value)"></td>
+                <td><input type="number" class="cell-input cell-input-num" value="${item.qty}" onchange="updateField(${item.id}, 'qty', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.current || ''}" onchange="updateField(${item.id}, 'current', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.resist || ''}" onchange="updateField(${item.id}, 'resist', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.vdc || ''}" onchange="updateField(${item.id}, 'vdc', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.cap || ''}" onchange="updateField(${item.id}, 'cap', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.vac || ''}" onchange="updateField(${item.id}, 'vac', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.freq || ''}" onchange="updateField(${item.id}, 'freq', this.value)"></td>
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" class="cell-input" value="${dsValue}" onchange="updateField(${item.id}, 'datasheet', this.value)">
+                        ${linkHtml}
+                    </div>
+                </td>
+                <td><button class="delete-btn" onclick="deleteItem(${item.id})">削除</button></td>
+            `;
+            list.appendChild(tr);
+        });
+    }
+
+    function exportCSV() {
+        if (inventory.length === 0) { alert('エクスポートするデータがありません'); return; }
+        const csvRows = ["カテゴリ,品名,型番,在庫,電流,抵抗,直流電圧,静電容量,交流電圧,発振周波数,データシート"];
+        inventory.forEach(i => {
+            csvRows.push([
+                i.category,
+                `"${(i.name || '').replace(/"/g, '""')}"`,
+                `"${(i.partNumber || '').replace(/"/g, '""')}"`,
+                i.qty,
+                `"${(i.current || '').replace(/"/g, '""')}"`,
+                `"${(i.resist || '').replace(/"/g, '""')}"`,
+                `"${(i.vdc || '').replace(/"/g, '""')}"`,
+                `"${(i.cap || '').replace(/"/g, '""')}"`,
+                `"${(i.vac || '').replace(/"/g, '""')}"`,
+                `"${(i.freq || '').replace(/"/g, '""')}"`,
+                `"${(i.datasheet || '').replace(/"/g, '""')}"`
+            ].join(','));
+        });
+        const blob = new Blob(["\ufeff" + csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "electronic_parts_list.csv";
+        link.click();
+    }
+
+    function importCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const rows = e.target.result.split(/\r?\n/).slice(1);
+            rows.forEach((row, index) => {
+                if (!row.trim()) return;
+                const p = row.split(',').map(cell => cell.replace(/^"(.*)"$/, '$1').replace(/""/g, '"'));
+                if (p.length >= 2) {
+                    inventory.push({ 
+                        id: Date.now() + index,
+                        category: p[0] || '電子部品', name: p[1] || '', partNumber: p[2] || '',
+                        qty: parseInt(p[3], 10) || 0, current: p[4] || '', resist: p[5] || '', 
+                        vdc: p[6] || '', cap: p[7] || '', vac: p[8] || '', freq: p[9] || '', datasheet: p[10] || ''
+                    });
+                }
+            });
+            await saveToCloud();
+        };
+        reader.readAsText(file);
+    }
+
+    // 初期化：クラウドからデータ取得
+    loadCloudData();
+</script>
+</body>
+</html>
