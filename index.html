@@ -64,6 +64,35 @@
         font-size: 11px;
         padding: 4px 2px;
     }
+    .table-wrapper {
+    width: 100%;
+    overflow-x: auto !important; /* 横スクロールを強制 */
+    -webkit-overflow-scrolling: touch;
+    margin-top: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+table {
+    width: 100%;
+    min-width: 1100px !important; /* テーブル全体の最小幅を確保して潰れを防ぐ */
+    border-collapse: collapse;
+}
+
+th, td {
+    white-space: nowrap; /* 文字や入力を勝手に折り返させない */
+    padding: 8px 6px;
+}
+
+/* 入力欄の幅を適切に固定 */
+.cell-input {
+    min-width: 80px; /* 入力欄が極端に狭くなるのを防止 */
+    box-sizing: border-box;
+}
+
+.cell-input-num {
+    min-width: 50px;
+}
 }   
     
     </style>
