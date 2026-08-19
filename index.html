@@ -310,8 +310,10 @@
     }
 
     /* CSVダウンロード機能（UTF-8 with BOM 対応） */
-    function exportCSV() {
-        if (inventory.length === 0) { 
+    /* 強力なエラーハンドリング付き CSVダウンロード機能 */
+function exportCSV() {
+    try {
+        if (!inventory || inventory.length === 0) { 
             alert('エクスポートするデータが存在しません。'); 
             return; 
         }
@@ -342,25 +344,33 @@
             csvRows.push(row.join(','));
         });
 
-        // \ufeff を加えることでExcelで開いた際の文字化けを防止 (BOM付きUTF-8)
+        // UTF-8 BOM付きデータの作成
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const blob = new Blob([bom, csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([bom, csvRows.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
         
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0];
         const fileName = `inventory_parts_${dateStr}.csv`;
 
-        const link = document.createElement("a");
-        if (navigator.msSaveBlob) { 
-            navigator.msSaveBlob(blob, fileName);
-        } else {
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        // ダウンロード実行
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        
+        // メモリ解除
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+
+    } catch (err) {
+        alert('CSV作成中にエラーが発生しました: ' + err.message);
+        console.error(err);
     }
+}
 
     function importCSV(event) {
         const file = event.target.files[0];
