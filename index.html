@@ -311,6 +311,7 @@
 
     /* CSVダウンロード機能（UTF-8 with BOM 対応） */
     /* 強力なエラーハンドリング付き CSVダウンロード機能 */
+/* 強力なエラーハンドリング・型変換付き CSVダウンロード機能 */
 function exportCSV() {
     try {
         if (!inventory || inventory.length === 0) { 
@@ -322,29 +323,35 @@ function exportCSV() {
             "カテゴリ,品名,型番,在庫,電流,抵抗,直流電圧,静電容量,交流電圧,発振周波数,インダクタンス,サイズ1,サイズ2,サイズ3,誤差,データシート"
         ];
 
+        // 数値や null が来ても安全に文字列化してエスケープする専用関数
+        const escapeCSV = (val) => {
+            if (val === null || val === undefined) return '""';
+            return `"${String(val).replace(/"/g, '""')}"`;
+        };
+
         inventory.forEach(i => {
             const row = [
-                i.category || '',
-                `"${(i.name || '').replace(/"/g, '""')}"`,
-                `"${(i.partNumber || '').replace(/"/g, '""')}"`,
-                i.qty || 0,
-                `"${(i.current || '').replace(/"/g, '""')}"`,
-                `"${(i.resist || '').replace(/"/g, '""')}"`,
-                `"${(i.vdc || '').replace(/"/g, '""')}"`,
-                `"${(i.cap || '').replace(/"/g, '""')}"`,
-                `"${(i.vac || '').replace(/"/g, '""')}"`,
-                `"${(i.freq || '').replace(/"/g, '""')}"`,
-                `"${(i.inductance || '').replace(/"/g, '""')}"`,
-                `"${(i.size1 || '').replace(/"/g, '""')}"`,
-                `"${(i.size2 || '').replace(/"/g, '""')}"`,
-                `"${(i.size3 || '').replace(/"/g, '""')}"`,
-                `"${(i.tolerance || '').replace(/"/g, '""')}"`,
-                `"${(i.datasheet || '').replace(/"/g, '""')}"`
+                escapeCSV(i.category),
+                escapeCSV(i.name),
+                escapeCSV(i.partNumber),
+                i.qty || 0, // 在庫数は数値のまま出力
+                escapeCSV(i.current),
+                escapeCSV(i.resist),
+                escapeCSV(i.vdc),
+                escapeCSV(i.cap),
+                escapeCSV(i.vac),
+                escapeCSV(i.freq),
+                escapeCSV(i.inductance),
+                escapeCSV(i.size1),
+                escapeCSV(i.size2),
+                escapeCSV(i.size3),
+                escapeCSV(i.tolerance),
+                escapeCSV(i.datasheet)
             ];
             csvRows.push(row.join(','));
         });
 
-        // UTF-8 BOM付きデータの作成
+        // UTF-8 BOM付きデータの作成 (文字化け防止)
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
         const blob = new Blob([bom, csvRows.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
         
