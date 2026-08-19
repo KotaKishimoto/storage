@@ -3,98 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>回路部品・在庫管理システム (GAS連携版)</title>
+    <title>回路部品・在庫管理システム</title>
+    <link rel="icon" href="data:,">
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1750px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        .container { max-width: 1800px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
         h1 { text-align: center; color: #333; margin-top: 0; margin-bottom: 20px; }
         .panel { background-color: #eef2f7; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
         .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; align-items: flex-end; }
-        .form-group { display: flex; flex-direction: column; flex: 1; min-width: 130px; }
+        .form-group { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
         .form-group.flex-wide { flex: 2; min-width: 200px; }
         label { font-size: 11px; color: #555; font-weight: bold; margin-bottom: 4px; }
-        input[type="text"], input[type="number"], select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; }
+        input[type="text"], input[type="number"], select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; width: 100%; }
         .unit-input-group { display: flex; gap: 4px; }
-        .unit-input-group input { flex: 1; min-width: 60px; }
+        .unit-input-group input { flex: 1; min-width: 50px; }
         .unit-input-group select { width: 65px; padding: 8px 4px; }
         .btn-container { margin-top: 10px; }
-        .btn { padding: 9px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.2s, opacity 0.2s; font-size: 13px; }
+        .btn { padding: 9px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; font-size: 13px; }
         .btn:hover { opacity: 0.85; }
-        .btn-add { background-color: #007bff; color: #ffffff; height: 37px; white-space: nowrap; }
+        .btn-add { background-color: #007bff; color: #ffffff; height: 37px; white-space: nowrap; width: 100%; }
         .btn-csv { background-color: #6c757d; color: #ffffff; margin-right: 5px; }
         .search-group { background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #1a73e8; display: flex; gap: 10px; margin-bottom: 15px; }
         .search-input { flex: 2; border: 1px solid #1a73e8; }
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        
+        /* テーブル表示調整・横スクロール強制 */
+        .table-wrapper { width: 100%; overflow-x: auto !important; -webkit-overflow-scrolling: touch; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 6px; }
+        table { width: 100%; min-width: 1500px !important; border-collapse: collapse; font-size: 13px; }
         th { background-color: #f8f9fa; padding: 10px 8px; border-bottom: 2px solid #dee2e6; text-align: left; white-space: nowrap; }
-        td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: middle; white-space: nowrap; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; background: #e8eaed; color: #5f6368; white-space: nowrap; }
-        .cell-input { width: 100%; border: 1px solid transparent; background: transparent; padding: 4px; box-sizing: border-box; border-radius: 3px; }
+        .cell-input { width: 100%; min-width: 70px; border: 1px solid transparent; background: transparent; padding: 4px; box-sizing: border-box; border-radius: 3px; font-size: 13px; }
         .cell-input:focus { border: 1px solid #1a73e8; background: #ffffff; outline: none; }
-        .cell-input-num { width: 65px; }
+        .cell-input-num { min-width: 50px; }
         .delete-btn { color: #d93025; background: none; border: none; cursor: pointer; font-size: 12px; padding: 4px; }
         .delete-btn:hover { text-decoration: underline; }
         .ds-link { color: #1a73e8; text-decoration: none; font-size: 12px; margin-left: 4px; white-space: nowrap; }
-        .ds-link:hover { text-decoration: underline; }
-        /* ローディング表示用 */
         #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 1000; justify-content: center; align-items: center; font-weight: bold; }
-         /* スマホ・タブレット用レイアウト調整 (画面幅768px以下) */
-/* スマホ表示時のテーブル表示補正 */
-@media (max-width: 768px) {
-    /* ラッパー要素で横スクロールを強制許可 */
-    .table-wrapper {
-        width: 100%;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch; /* iOSでのスクロールをなめらかに */
-        margin-top: 10px;
-    }
 
-    /* テーブルが潰れすぎないよう最小幅を確保 */
-    table {
-        min-width: 800px; /* 横スクロールで全項目を見せるための最小幅 */
-        font-size: 11px;
-    }
-
-    th, td {
-        padding: 6px 4px;
-        white-space: nowrap; /* テキストの意図しない改行を防止 */
-    }
-
-    .cell-input {
-        font-size: 11px;
-        padding: 4px 2px;
-    }
-    .table-wrapper {
-    width: 100%;
-    overflow-x: auto !important; /* 横スクロールを強制 */
-    -webkit-overflow-scrolling: touch;
-    margin-top: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-}
-
-table {
-    width: 100%;
-    min-width: 1100px !important; /* テーブル全体の最小幅を確保して潰れを防ぐ */
-    border-collapse: collapse;
-}
-
-th, td {
-    white-space: nowrap; /* 文字や入力を勝手に折り返させない */
-    padding: 8px 6px;
-}
-
-/* 入力欄の幅を適切に固定 */
-.cell-input {
-    min-width: 80px; /* 入力欄が極端に狭くなるのを防止 */
-    box-sizing: border-box;
-}
-
-.cell-input-num {
-    min-width: 50px;
-}
-}   
-    
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px 10px; }
+            .form-row { flex-direction: column; gap: 8px; }
+            .form-group, .form-group.flex-wide { width: 100%; min-width: 100%; }
+            .search-group { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
@@ -102,9 +54,10 @@ th, td {
 <div id="loadingOverlay">クラウド同期中...</div>
 
 <div class="container">
-    <h1>回路部品・在庫管理システム (スプレッドシート連携)</h1>
+    <h1>回路部品・在庫管理システム</h1>
 
     <div class="panel">
+        <!-- 基本情報 -->
         <div class="form-row">
             <div class="form-group"><label for="itemName">品名</label><input type="text" id="itemName" placeholder="例: 水晶発振器 / PWM IC"></div>
             <div class="form-group"><label for="itemPartNumber">型番</label><input type="text" id="itemPartNumber" placeholder="例: MB3759 / NE555"></div>
@@ -121,6 +74,7 @@ th, td {
             <div class="form-group flex-wide"><label for="valDatasheet">データシート (URL / 備考)</label><input type="text" id="valDatasheet" placeholder="https://example.com/datasheet.pdf"></div>
         </div>
 
+        <!-- 電気特性 -->
         <div class="form-row">
             <div class="form-group"><label>電流</label><div class="unit-input-group"><input type="number" id="valCurrentNum" step="0.01" placeholder="数値"><select id="valCurrentUnit"><option value="mA">mA</option><option value="A">A</option></select></div></div>
             <div class="form-group"><label>抵抗</label><div class="unit-input-group"><input type="number" id="valResistNum" step="0.1" placeholder="数値"><select id="valResistUnit"><option value="Ω">Ω</option><option value="kΩ">kΩ</option><option value="MΩ">MΩ</option></select></div></div>
@@ -128,11 +82,22 @@ th, td {
             <div class="form-group"><label>静電容量</label><div class="unit-input-group"><input type="number" id="valCapNum" step="0.01" placeholder="数値"><select id="valCapUnit"><option value="μF">μF</option><option value="pF">pF</option><option value="nF">nF</option><option value="F">F</option></select></div></div>
             <div class="form-group"><label>交流電圧</label><div class="unit-input-group"><input type="number" id="valVacNum" step="0.1" placeholder="数値"><select id="valVacUnit"><option value="Vac">Vac</option><option value="mVac">mVac</option></select></div></div>
             <div class="form-group"><label>発振周波数</label><div class="unit-input-group"><input type="number" id="valFreqNum" step="0.001" placeholder="数値"><select id="valFreqUnit"><option value="kHz">kHz</option><option value="MHz">MHz</option><option value="Hz">Hz</option><option value="GHz">GHz</option></select></div></div>
-            <button class="btn btn-add" onclick="addItem()">データ追加</button>
+        </div>
+
+        <!-- 外形サイズ・誤差・追加ボタン -->
+        <div class="form-row">
+            <div class="form-group"><label>サイズ1 (縦/外径)</label><div class="unit-input-group"><input type="number" id="valSize1Num" step="0.01" placeholder="数値"><select id="valSize1Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            <div class="form-group"><label>サイズ2 (横/内径)</label><div class="unit-input-group"><input type="number" id="valSize2Num" step="0.01" placeholder="数値"><select id="valSize2Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            <div class="form-group"><label>サイズ3 (高さ/ピッチ)</label><div class="unit-input-group"><input type="number" id="valSize3Num" step="0.01" placeholder="数値"><select id="valSize3Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            <div class="form-group"><label>誤差 (許容差)</label><div class="unit-input-group"><input type="number" id="valTolNum" step="0.1" placeholder="数値"><select id="valTolUnit"><option value="%">%</option><option value="±%">±%</option><option value="PPM">PPM</option></select></div></div>
+            <div class="form-group" style="flex: 2; min-width: 160px;">
+                <label>&nbsp;</label>
+                <button class="btn btn-add" onclick="addItem()">データ追加</button>
+            </div>
         </div>
 
         <div class="search-group">
-            <input type="text" id="searchInput" class="search-input" placeholder="品名・型番・規格値・データシートで検索..." oninput="renderTable()">
+            <input type="text" id="searchInput" class="search-input" placeholder="品名・型番・規格値・サイズで検索..." oninput="renderTable()">
             <select id="filterCategory" onchange="renderTable()">
                 <option value="all">すべてのカテゴリ</option>
                 <option value="電子部品">電子部品</option>
@@ -154,18 +119,7 @@ th, td {
         <table>
             <thead>
                 <tr>
-                    <th>カテゴリ</th>
-                    <th>品名</th>
-                    <th>型番</th>
-                    <th>在庫</th>
-                    <th>電流</th>
-                    <th>抵抗</th>
-                    <th>直流電圧</th>
-                    <th>容量</th>
-                    <th>交流電圧</th>
-                    <th>発振周波数</th>
-                    <th>データシート</th>
-                    <th>操作</th>
+                    <th>カテゴリ</th><th>品名</th><th>型番</th><th>在庫</th><th>電流</th><th>抵抗</th><th>直流電圧</th><th>容量</th><th>交流電圧</th><th>発振周波数</th><th>サイズ1</th><th>サイズ2</th><th>サイズ3</th><th>誤差</th><th>データシート</th><th>操作</th>
                 </tr>
             </thead>
             <tbody id="inventoryList"></tbody>
@@ -174,7 +128,7 @@ th, td {
 </div>
 
 <script>
-    // ★ Step 1で取得した /exec で終わるURLを貼り付けます
+    // ★ここに取得した Web アプリの URL を貼り付けてください (/exec で終わるURL)
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyKKEDT3jim2-w0PGKcWKnqQXSLijTYRl373C-00VAvaSFNkDHxxoaoSP4XUTQFYjOtnw/exec";
 
     let inventory = [];
@@ -186,10 +140,6 @@ th, td {
 
     /* クラウドからデータ取得 */
     async function loadCloudData() {
-        if (!GAS_API_URL || GAS_API_URL.includes("YOUR_GAS_WEB_APP_URL_HERE")) {
-            alert("GASのWebアプリURLが設定されていません。");
-            return;
-        }
         showLoading(true);
         try {
             const res = await fetch(GAS_API_URL);
@@ -210,9 +160,7 @@ th, td {
         try {
             const res = await fetch(GAS_API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(inventory)
             });
             const result = await res.json();
@@ -252,6 +200,10 @@ th, td {
             cap: formatValueWithUnit('valCapNum', 'valCapUnit'),
             vac: formatValueWithUnit('valVacNum', 'valVacUnit'),
             freq: formatValueWithUnit('valFreqNum', 'valFreqUnit'),
+            size1: formatValueWithUnit('valSize1Num', 'valSize1Unit'),
+            size2: formatValueWithUnit('valSize2Num', 'valSize2Unit'),
+            size3: formatValueWithUnit('valSize3Num', 'valSize3Unit'),
+            tolerance: formatValueWithUnit('valTolNum', 'valTolUnit'),
             datasheet: document.getElementById('valDatasheet').value.trim()
         };
 
@@ -270,6 +222,10 @@ th, td {
         document.getElementById('valCapNum').value = '';
         document.getElementById('valVacNum').value = '';
         document.getElementById('valFreqNum').value = '';
+        document.getElementById('valSize1Num').value = '';
+        document.getElementById('valSize2Num').value = '';
+        document.getElementById('valSize3Num').value = '';
+        document.getElementById('valTolNum').value = '';
         document.getElementById('valDatasheet').value = '';
     }
 
@@ -307,6 +263,10 @@ th, td {
                 (item.cap && item.cap.toLowerCase().includes(searchTerm)) ||
                 (item.vac && item.vac.toLowerCase().includes(searchTerm)) ||
                 (item.freq && item.freq.toLowerCase().includes(searchTerm)) ||
+                (item.size1 && item.size1.toLowerCase().includes(searchTerm)) ||
+                (item.size2 && item.size2.toLowerCase().includes(searchTerm)) ||
+                (item.size3 && item.size3.toLowerCase().includes(searchTerm)) ||
+                (item.tolerance && item.tolerance.toLowerCase().includes(searchTerm)) ||
                 (item.datasheet && item.datasheet.toLowerCase().includes(searchTerm));
 
             const matchesCategory = (filterCat === 'all' || item.category === filterCat);
@@ -330,6 +290,10 @@ th, td {
                 <td><input type="text" class="cell-input" value="${item.cap || ''}" onchange="updateField(${item.id}, 'cap', this.value)"></td>
                 <td><input type="text" class="cell-input" value="${item.vac || ''}" onchange="updateField(${item.id}, 'vac', this.value)"></td>
                 <td><input type="text" class="cell-input" value="${item.freq || ''}" onchange="updateField(${item.id}, 'freq', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.size1 || ''}" onchange="updateField(${item.id}, 'size1', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.size2 || ''}" onchange="updateField(${item.id}, 'size2', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.size3 || ''}" onchange="updateField(${item.id}, 'size3', this.value)"></td>
+                <td><input type="text" class="cell-input" value="${item.tolerance || ''}" onchange="updateField(${item.id}, 'tolerance', this.value)"></td>
                 <td>
                     <div style="display: flex; align-items: center;">
                         <input type="text" class="cell-input" value="${dsValue}" onchange="updateField(${item.id}, 'datasheet', this.value)">
@@ -344,7 +308,7 @@ th, td {
 
     function exportCSV() {
         if (inventory.length === 0) { alert('エクスポートするデータがありません'); return; }
-        const csvRows = ["カテゴリ,品名,型番,在庫,電流,抵抗,直流電圧,静電容量,交流電圧,発振周波数,データシート"];
+        const csvRows = ["カテゴリ,品名,型番,在庫,電流,抵抗,直流電圧,静電容量,交流電圧,発振周波数,サイズ1,サイズ2,サイズ3,誤差,データシート"];
         inventory.forEach(i => {
             csvRows.push([
                 i.category,
@@ -357,6 +321,10 @@ th, td {
                 `"${(i.cap || '').replace(/"/g, '""')}"`,
                 `"${(i.vac || '').replace(/"/g, '""')}"`,
                 `"${(i.freq || '').replace(/"/g, '""')}"`,
+                `"${(i.size1 || '').replace(/"/g, '""')}"`,
+                `"${(i.size2 || '').replace(/"/g, '""')}"`,
+                `"${(i.size3 || '').replace(/"/g, '""')}"`,
+                `"${(i.tolerance || '').replace(/"/g, '""')}"`,
                 `"${(i.datasheet || '').replace(/"/g, '""')}"`
             ].join(','));
         });
@@ -381,7 +349,9 @@ th, td {
                         id: Date.now() + index,
                         category: p[0] || '電子部品', name: p[1] || '', partNumber: p[2] || '',
                         qty: parseInt(p[3], 10) || 0, current: p[4] || '', resist: p[5] || '', 
-                        vdc: p[6] || '', cap: p[7] || '', vac: p[8] || '', freq: p[9] || '', datasheet: p[10] || ''
+                        vdc: p[6] || '', cap: p[7] || '', vac: p[8] || '', freq: p[9] || '',
+                        size1: p[10] || '', size2: p[11] || '', size3: p[12] || '', tolerance: p[13] || '',
+                        datasheet: p[14] || ''
                     });
                 }
             });
@@ -390,7 +360,6 @@ th, td {
         reader.readAsText(file);
     }
 
-    // ページロード時にデータ読み込み
     window.addEventListener('DOMContentLoaded', () => {
         loadCloudData();
     });
