@@ -3,304 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>回路部品・在庫管理システム</title>
-    <link rel="icon" href="data:,">
+    <title>在庫管理システム Pro</title>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1800px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-        h1 { text-align: center; color: #333; margin-top: 0; margin-bottom: 20px; }
-        .panel { background-color: #eef2f7; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; align-items: flex-end; }
-        .form-group { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
-        .form-group.flex-wide { flex: 2; min-width: 200px; }
-        label { font-size: 11px; color: #555; font-weight: bold; margin-bottom: 4px; }
-        input[type="text"], input[type="number"], select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; width: 100%; }
-        .unit-input-group { display: flex; gap: 4px; }
-        .unit-input-group input { flex: 1; min-width: 50px; }
-        .unit-input-group select { width: 65px; padding: 8px 4px; }
-        .btn-container { margin-top: 15px; display: flex; gap: 10px; }
-        .btn { padding: 9px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; font-size: 13px; }
-        .btn:hover { opacity: 0.85; }
-        .btn-add { background-color: #007bff; color: #ffffff; height: 37px; white-space: nowrap; width: 100%; }
-        .btn-csv { background-color: #28a745; color: #ffffff; }
-        .btn-secondary { background-color: #6c757d; color: #ffffff; }
-        .search-group { background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #1a73e8; display: flex; gap: 10px; margin-bottom: 15px; }
-        .search-input { flex: 2; border: 1px solid #1a73e8; }
-        
-        .table-wrapper { width: 100%; overflow-x: auto !important; -webkit-overflow-scrolling: touch; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 6px; }
-        table { width: 100%; min-width: 1600px !important; border-collapse: collapse; font-size: 13px; }
-        th { background-color: #f8f9fa; padding: 10px 8px; border-bottom: 2px solid #dee2e6; text-align: left; white-space: nowrap; }
-        td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: middle; white-space: nowrap; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; background: #e8eaed; color: #5f6368; white-space: nowrap; }
-        .cell-input { width: 100%; min-width: 70px; border: 1px solid transparent; background: transparent; padding: 4px; box-sizing: border-box; border-radius: 3px; font-size: 13px; }
-        .cell-input:focus { border: 1px solid #1a73e8; background: #ffffff; outline: none; }
-        .cell-input-num { min-width: 50px; }
-        .delete-btn { color: #d93025; background: none; border: none; cursor: pointer; font-size: 12px; padding: 4px; }
-        .delete-btn:hover { text-decoration: underline; }
-        .ds-link { color: #1a73e8; text-decoration: none; font-size: 12px; margin-left: 4px; white-space: nowrap; }
-        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 1000; justify-content: center; align-items: center; font-weight: bold; }
+        /* --- CSS: 全体デザインの設定 --- */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f9; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; }
 
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .container { padding: 15px 10px; }
-            .form-row { flex-direction: column; gap: 8px; }
-            .form-group, .form-group.flex-wide { width: 100%; min-width: 100%; }
-            .search-group { flex-direction: column; }
-        }
+        /* 操作パネルの背景とレイアウト */
+        .panel { background: #eef2f7; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .form-group, .search-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        
+        /* 入力欄と選択枠の基本スタイル */
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        /* フォーム要素個別サイズ調整（調整箇所） */
+        #itemName { flex: 2; min-width: 150px; } /* 商品名入力欄：広く伸ばす */
+        #itemQty { flex: 1; min-width: 80px; }  /* 数量入力欄：小さめ */
+        #itemCategory { flex: none; width: 140px; } /* カテゴリ選択欄：サイズをコンパクトに固定 */
+
+        /* ボタンの基本設定 */
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-add { background-color: #28a745; color: white; }
+        .btn-csv { background-color: #6c757d; color: white; font-size: 13px; }
+        .btn:hover { opacity: 0.8; }
+
+        /* 検索と並び替えエリア */
+        .search-group { background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #1a73e8; }
+        .search-input { flex: 2; min-width: 180px; border: 1px solid #1a73e8; }
+        #sortSelect { flex: 1; min-width: 150px; }
+
+        /* テーブル（一覧表）スタイル */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: #f8f9fa; cursor: pointer; position: relative; }
+        td, th { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        
+        /* 数量調整ボタン(+/-)のレイアウト */
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .btn-step { width: 28px; height: 28px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
+        .btn-step:hover { background-color: #e9ecef; }
+        
+        /* 在庫警告（5個以下）の装飾 */
+        .low-stock { background-color: #fff5f5; color: #d93025; font-weight: bold; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; background: #e8eaed; color: #5f6368; display: inline-block; }
+        .delete-btn { color: #d93025; background: none; border: none; cursor: pointer; text-decoration: underline; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div id="loadingOverlay">クラウド同期中...</div>
-
 <div class="container">
-    <h1>回路部品・在庫管理システム</h1>
+    <h1>在庫管理システム Pro</h1>
 
+    <!-- 1. 操作・入力パネル -->
     <div class="panel">
-        <!-- 基本情報 -->
-        <div class="form-row">
-            <div class="form-group"><label for="itemName">品名</label><input type="text" id="itemName" placeholder="例: インダクタ / 水晶発振器"></div>
-            <div class="form-group"><label for="itemPartNumber">型番</label><input type="text" id="itemPartNumber" placeholder="例: MB3759 / NE555"></div>
-            <div class="form-group">
-                <label for="itemCategory">カテゴリ</label>
-                <select id="itemCategory">
-                    <option value="電子部品">電子部品</option>
-                    <option value="締結部品">締結部品</option>
-                    <option value="スプレー">スプレー</option>
-                    <option value="道具">道具</option>
-                </select>
-            </div>
-            <div class="form-group"><label for="itemQty">在庫数</label><input type="number" id="itemQty" placeholder="個数"></div>
-            <div class="form-group flex-wide"><label for="valDatasheet">データシート (URL / 備考)</label><input type="text" id="valDatasheet" placeholder="https://example.com/datasheet.pdf"></div>
-        </div>
-
-        <!-- 電気特性 -->
-        <div class="form-row">
-            <div class="form-group"><label>電流</label><div class="unit-input-group"><input type="number" id="valCurrentNum" step="0.01" placeholder="数値"><select id="valCurrentUnit"><option value="mA">mA</option><option value="A">A</option></select></div></div>
-            <div class="form-group"><label>抵抗</label><div class="unit-input-group"><input type="number" id="valResistNum" step="0.1" placeholder="数値"><select id="valResistUnit"><option value="Ω">Ω</option><option value="kΩ">kΩ</option><option value="MΩ">MΩ</option></select></div></div>
-            <div class="form-group"><label>直流電圧</label><div class="unit-input-group"><input type="number" id="valVdcNum" step="0.1" placeholder="数値"><select id="valVdcUnit"><option value="Vdc">Vdc</option><option value="mVdc">mVdc</option></select></div></div>
-            <div class="form-group"><label>静電容量</label><div class="unit-input-group"><input type="number" id="valCapNum" step="0.01" placeholder="数値"><select id="valCapUnit"><option value="μF">μF</option><option value="pF">pF</option><option value="nF">nF</option><option value="F">F</option></select></div></div>
-            <div class="form-group"><label>交流電圧</label><div class="unit-input-group"><input type="number" id="valVacNum" step="0.1" placeholder="数値"><select id="valVacUnit"><option value="Vac">Vac</option><option value="mVac">mVac</option></select></div></div>
-            <div class="form-group"><label>発振周波数</label><div class="unit-input-group"><input type="number" id="valFreqNum" step="0.001" placeholder="数値"><select id="valFreqUnit"><option value="kHz">kHz</option><option value="MHz">MHz</option><option value="Hz">Hz</option><option value="GHz">GHz</option></select></div></div>
-            <div class="form-group"><label>インダクタンス</label><div class="unit-input-group"><input type="number" id="valInductanceNum" step="0.01" placeholder="数値"><select id="valInductanceUnit"><option value="μH">μH</option><option value="mH">mH</option><option value="nH">nH</option><option value="H">H</option></select></div></div>
-        </div>
-
-        <!-- 外形サイズ・誤差・追加ボタン -->
-        <div class="form-row">
-            <div class="form-group"><label>サイズ1 (縦/外径)</label><div class="unit-input-group"><input type="number" id="valSize1Num" step="0.01" placeholder="数値"><select id="valSize1Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
-            <div class="form-group"><label>サイズ2 (横/内径)</label><div class="unit-input-group"><input type="number" id="valSize2Num" step="0.01" placeholder="数値"><select id="valSize2Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
-            <div class="form-group"><label>サイズ3 (高さ/ピッチ)</label><div class="unit-input-group"><input type="number" id="valSize3Num" step="0.01" placeholder="数値"><select id="valSize3Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
-            <div class="form-group"><label>誤差 (許容差)</label><div class="unit-input-group"><input type="number" id="valTolNum" step="0.1" placeholder="数値"><select id="valTolUnit"><option value="%">%</option><option value="±%">±%</option><option value="PPM">PPM</option></select></div></div>
-            <div class="form-group" style="flex: 2; min-width: 160px;">
-                <label>&nbsp;</label>
-                <button class="btn btn-add" onclick="addItem()">データ追加</button>
-            </div>
-        </div>
-
-        <div class="search-group">
-            <input type="text" id="searchInput" class="search-input" placeholder="品名・型番・規格値・サイズで検索..." oninput="renderTable()">
-            <select id="filterCategory" onchange="renderTable()">
-                <option value="all">すべてのカテゴリ</option>
+        <!-- 新規登録フォーム -->
+        <div class="form-group">
+            <input type="text" id="itemName" placeholder="商品名を追加...">
+            <input type="number" id="itemQty" placeholder="数量" min="0">
+            <select id="itemCategory">
                 <option value="電子部品">電子部品</option>
                 <option value="締結部品">締結部品</option>
                 <option value="スプレー">スプレー</option>
                 <option value="道具">道具</option>
             </select>
-            <button class="btn btn-secondary" onclick="loadCloudData()">最新データ取得 🔄</button>
+            <button class="btn btn-add" onclick="addItem()">追加</button>
         </div>
 
-        <div class="btn-container">
-            <button class="btn btn-csv" onclick="exportCSV()">📥 CSVダウンロード</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('csvFile').click()">📤 CSVインポート</button>
+        <!-- 検索バー ＆ ソートメニュー -->
+        <div class="search-group">
+            <input type="text" id="searchInput" class="search-input" placeholder="商品名で検索..." oninput="renderTable()">
+            <select id="sortSelect" onchange="renderTable()">
+                <option value="id_desc">登録が新しい順</option>
+                <option value="qty_asc">在庫が少ない順</option>
+                <option value="qty_desc">在庫が多い順</option>
+                <option value="name_asc">名前順 (A-Z)</option>
+                <option value="cat_asc">カテゴリ順</option>
+            </select>
+        </div>
+
+        <!-- CSV入出力操作 -->
+        <div style="margin-top:10px;">
+            <button class="btn btn-csv" onclick="exportCSV()">CSV書き出し</button>
+            <button class="btn btn-csv" onclick="document.getElementById('csvFile').click()">CSV読み込み</button>
             <input type="file" id="csvFile" style="display:none" accept=".csv" onchange="importCSV(event)">
         </div>
     </div>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>カテゴリ</th><th>品名</th><th>型番</th><th>在庫</th><th>電流</th><th>抵抗</th><th>直流電圧</th><th>容量</th><th>交流電圧</th><th>発振周波数</th><th>インダクタンス</th><th>サイズ1</th><th>サイズ2</th><th>サイズ3</th><th>誤差</th><th>データシート</th><th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="inventoryList"></tbody>
-        </table>
-    </div>
+    <!-- 2. 在庫一覧表示テーブル -->
+    <table>
+        <thead>
+            <tr>
+                <th>カテゴリ</th>
+                <th>商品名 (クリックで編集)</th>
+                <th>数量 (増減 / 編集)</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="inventoryList"></tbody>
+    </table>
 </div>
 
 <script>
-    // ★ここに取得した Web アプリの URL を貼り付けてください (/exec で終わるURL)
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyKKEDT3jim2-w0PGKcWKnqQXSLijTYRl373C-00VAvaSFNkDHxxoaoSP4XUTQFYjOtnw/exec";
+    /* --- JavaScript: 処理ロジック --- */
 
-    let inventory = [];
+    // LocalStorageからデータを取得（無ければ空配列）
+    let inventory = JSON.parse(localStorage.getItem('proInventory')) || [];
 
-    function showLoading(show) {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = show ? 'flex' : 'none';
+    // 保存と再描画を実行する関数
+    function saveAndRender() {
+        localStorage.setItem('proInventory', JSON.stringify(inventory));
+        renderTable();
     }
 
-    async function loadCloudData() {
-        showLoading(true);
-        try {
-            const res = await fetch(GAS_API_URL);
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            inventory = await res.json();
-            renderTable();
-        } catch (err) {
-            alert("クラウドデータの取得に失敗しました。URLまたはアクセス権限を確認してください。");
-            console.error(err);
-        } finally {
-            showLoading(false);
-        }
-    }
+    // 在庫データの追加
+    function addItem() {
+        const name = document.getElementById('itemName').value;
+        const qty = parseInt(document.getElementById('itemQty').value);
+        const category = document.getElementById('itemCategory').value;
 
-    async function saveToCloud() {
-        showLoading(true);
-        try {
-            const res = await fetch(GAS_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(inventory)
-            });
-            const result = await res.json();
-            if (result.status === 'error') {
-                alert('GASエラー: ' + result.message);
-            } else {
-                renderTable();
-            }
-        } catch (err) {
-            alert("クラウドへの保存に失敗しました");
-            console.error(err);
-        } finally {
-            showLoading(false);
-        }
-    }
+        if (!name || isNaN(qty)) return alert('入力を確認してください');
 
-    function formatValueWithUnit(inputId, unitId) {
-        const num = document.getElementById(inputId).value.trim();
-        const unit = document.getElementById(unitId).value;
-        return num ? `${num}${unit}` : '';
-    }
-
-    async function addItem() {
-        const nameInput = document.getElementById('itemName');
-        const name = nameInput.value.trim();
-        if (!name) { alert('品名を入力してください'); return; }
-
-        const newItem = {
-            id: Date.now(),
-            name: name,
-            partNumber: document.getElementById('itemPartNumber').value.trim(),
-            category: document.getElementById('itemCategory').value,
-            qty: parseInt(document.getElementById('itemQty').value, 10) || 0,
-            current: formatValueWithUnit('valCurrentNum', 'valCurrentUnit'),
-            resist: formatValueWithUnit('valResistNum', 'valResistUnit'),
-            vdc: formatValueWithUnit('valVdcNum', 'valVdcUnit'),
-            cap: formatValueWithUnit('valCapNum', 'valCapUnit'),
-            vac: formatValueWithUnit('valVacNum', 'valVacUnit'),
-            freq: formatValueWithUnit('valFreqNum', 'valFreqUnit'),
-            inductance: formatValueWithUnit('valInductanceNum', 'valInductanceUnit'),
-            size1: formatValueWithUnit('valSize1Num', 'valSize1Unit'),
-            size2: formatValueWithUnit('valSize2Num', 'valSize2Unit'),
-            size3: formatValueWithUnit('valSize3Num', 'valSize3Unit'),
-            tolerance: formatValueWithUnit('valTolNum', 'valTolUnit'),
-            datasheet: document.getElementById('valDatasheet').value.trim()
-        };
-
-        inventory.push(newItem);
-        clearInputForm();
-        await saveToCloud();
-    }
-
-    function clearInputForm() {
+        inventory.push({ id: Date.now(), name, qty, category });
         document.getElementById('itemName').value = '';
-        document.getElementById('itemPartNumber').value = '';
         document.getElementById('itemQty').value = '';
-        document.getElementById('valCurrentNum').value = '';
-        document.getElementById('valResistNum').value = '';
-        document.getElementById('valVdcNum').value = '';
-        document.getElementById('valCapNum').value = '';
-        document.getElementById('valVacNum').value = '';
-        document.getElementById('valFreqNum').value = '';
-        document.getElementById('valInductanceNum').value = '';
-        document.getElementById('valSize1Num').value = '';
-        document.getElementById('valSize2Num').value = '';
-        document.getElementById('valSize3Num').value = '';
-        document.getElementById('valTolNum').value = '';
-        document.getElementById('valDatasheet').value = '';
+        saveAndRender();
     }
 
+    // 数量の増減処理 (+/- ボタン)
+    function changeQty(id, delta) {
+        const item = inventory.find(i => i.id === id);
+        if (item) {
+            item.qty = Math.max(0, item.qty + delta);
+            saveAndRender();
+        }
+    }
+
+    // インライン編集（名前・数量の変更）
     function updateField(id, field, value) {
         const item = inventory.find(i => i.id === id);
         if (item) {
-            item[field] = value;
-            saveToCloud();
+            item[field] = field === 'qty' ? parseInt(value) || 0 : value;
+            localStorage.setItem('proInventory', JSON.stringify(inventory));
         }
     }
 
-    async function deleteItem(id) {
-        if (confirm('削除しますか？')) {
+    // 削除機能
+    function deleteItem(id) {
+        if(confirm('削除しますか？')) {
             inventory = inventory.filter(i => i.id !== id);
-            await saveToCloud();
+            saveAndRender();
         }
     }
 
+    // メイン描画処理（検索・ソート結果の反映）
     function renderTable() {
         const list = document.getElementById('inventoryList');
-        if (!list) return;
-        
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filterCat = document.getElementById('filterCategory').value;
-
+        const sortMode = document.getElementById('sortSelect').value;
+        
         list.innerHTML = '';
 
-        const displayList = inventory.filter(item => {
-            const matchesSearch = 
-                (item.name && item.name.toLowerCase().includes(searchTerm)) ||
-                (item.partNumber && item.partNumber.toLowerCase().includes(searchTerm)) ||
-                (item.current && item.current.toLowerCase().includes(searchTerm)) ||
-                (item.resist && item.resist.toLowerCase().includes(searchTerm)) ||
-                (item.vdc && item.vdc.toLowerCase().includes(searchTerm)) ||
-                (item.cap && item.cap.toLowerCase().includes(searchTerm)) ||
-                (item.vac && item.vac.toLowerCase().includes(searchTerm)) ||
-                (item.freq && item.freq.toLowerCase().includes(searchTerm)) ||
-                (item.inductance && item.inductance.toLowerCase().includes(searchTerm)) ||
-                (item.size1 && item.size1.toLowerCase().includes(searchTerm)) ||
-                (item.size2 && item.size2.toLowerCase().includes(searchTerm)) ||
-                (item.size3 && item.size3.toLowerCase().includes(searchTerm)) ||
-                (item.tolerance && item.tolerance.toLowerCase().includes(searchTerm)) ||
-                (item.datasheet && item.datasheet.toLowerCase().includes(searchTerm));
+        // 検索フィルター
+        let displayList = inventory.filter(item => 
+            item.name.toLowerCase().includes(searchTerm) || 
+            item.category.includes(searchTerm)
+        );
 
-            const matchesCategory = (filterCat === 'all' || item.category === filterCat);
-            return matchesSearch && matchesCategory;
+        // ソート処理
+        displayList.sort((a, b) => {
+            if (sortMode === 'qty_asc') return a.qty - b.qty;
+            if (sortMode === 'qty_desc') return b.qty - a.qty;
+            if (sortMode === 'name_asc') return a.name.localeCompare(b.name, 'ja');
+            if (sortMode === 'cat_asc') return a.category.localeCompare(b.category, 'ja');
+            return b.id - a.id;
         });
 
+        // テーブル要素の動的生成
         displayList.forEach(item => {
+            const isLow = item.qty <= 5;
             const tr = document.createElement('tr');
-            const dsValue = item.datasheet || '';
-            const isUrl = dsValue.startsWith('http://') || dsValue.startsWith('https://');
-            const linkHtml = isUrl ? `<a href="${dsValue}" target="_blank" rel="noopener noreferrer" class="ds-link">開く 🔗</a>` : '';
+            if (isLow) tr.className = 'low-stock';
 
             tr.innerHTML = `
                 <td><span class="badge">${item.category}</span></td>
-                <td><input type="text" class="cell-input" value="${item.name || ''}" onchange="updateField(${item.id}, 'name', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.partNumber || ''}" onchange="updateField(${item.id}, 'partNumber', this.value)"></td>
-                <td><input type="number" class="cell-input cell-input-num" value="${item.qty}" onchange="updateField(${item.id}, 'qty', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.current || ''}" onchange="updateField(${item.id}, 'current', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.resist || ''}" onchange="updateField(${item.id}, 'resist', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.vdc || ''}" onchange="updateField(${item.id}, 'vdc', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.cap || ''}" onchange="updateField(${item.id}, 'cap', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.vac || ''}" onchange="updateField(${item.id}, 'vac', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.freq || ''}" onchange="updateField(${item.id}, 'freq', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.inductance || ''}" onchange="updateField(${item.id}, 'inductance', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.size1 || ''}" onchange="updateField(${item.id}, 'size1', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.size2 || ''}" onchange="updateField(${item.id}, 'size2', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.size3 || ''}" onchange="updateField(${item.id}, 'size3', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.tolerance || ''}" onchange="updateField(${item.id}, 'tolerance', this.value)"></td>
+                <td><input type="text" style="width:100%; border:none; background:transparent;" value="${item.name}" onchange="updateField(${item.id}, 'name', this.value)"></td>
                 <td>
-                    <div style="display: flex; align-items: center;">
-                        <input type="text" class="cell-input" value="${dsValue}" onchange="updateField(${item.id}, 'datasheet', this.value)">
-                        ${linkHtml}
+                    <div class="qty-controls">
+                        <button class="btn-step" onclick="changeQty(${item.id}, -1)">-</button>
+                        <input type="number" style="width:50px; text-align:center;" value="${item.qty}" onchange="updateField(${item.id}, 'qty', this.value)">
+                        <button class="btn-step" onclick="changeQty(${item.id}, 1)">+</button>
+                        ${isLow ? '⚠️' : ''}
                     </div>
                 </td>
                 <td><button class="delete-btn" onclick="deleteItem(${item.id})">削除</button></td>
@@ -309,104 +201,45 @@
         });
     }
 
-    /* CSVダウンロード機能（UTF-8 with BOM 対応） */
-    /* 強力なエラーハンドリング・型変換付き CSVダウンロード機能 */
-function exportCSV() {
-    try {
-        if (!inventory || inventory.length === 0) { 
-            alert('エクスポートするデータが存在しません。'); 
-            return; 
-        }
-
-        const csvRows = [
-            "カテゴリ,品名,型番,在庫,電流,抵抗,直流電圧,静電容量,交流電圧,発振周波数,インダクタンス,サイズ1,サイズ2,サイズ3,誤差,データシート"
-        ];
-
-        // 数値や null が来ても安全に文字列化してエスケープする専用関数
-        const escapeCSV = (val) => {
-            if (val === null || val === undefined) return '""';
-            return `"${String(val).replace(/"/g, '""')}"`;
-        };
-
-        inventory.forEach(i => {
-            const row = [
-                escapeCSV(i.category),
-                escapeCSV(i.name),
-                escapeCSV(i.partNumber),
-                i.qty || 0, // 在庫数は数値のまま出力
-                escapeCSV(i.current),
-                escapeCSV(i.resist),
-                escapeCSV(i.vdc),
-                escapeCSV(i.cap),
-                escapeCSV(i.vac),
-                escapeCSV(i.freq),
-                escapeCSV(i.inductance),
-                escapeCSV(i.size1),
-                escapeCSV(i.size2),
-                escapeCSV(i.size3),
-                escapeCSV(i.tolerance),
-                escapeCSV(i.datasheet)
-            ];
-            csvRows.push(row.join(','));
-        });
-
-        // UTF-8 BOM付きデータの作成 (文字化け防止)
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const blob = new Blob([bom, csvRows.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
-        
-        const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
-        const fileName = `inventory_parts_${dateStr}.csv`;
-
-        // ダウンロード実行
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        
-        // メモリ解除
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 100);
-
-    } catch (err) {
-        alert('CSV作成中にエラーが発生しました: ' + err.message);
-        console.error(err);
+    // CSV書き出し
+    function exportCSV() {
+        if (inventory.length === 0) return alert('データがありません');
+        const csvRows = ["カテゴリ,商品名,数量"];
+        inventory.forEach(i => csvRows.push(`${i.category},${i.name},${i.qty}`));
+        const blob = new Blob(["\ufeff" + csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "inventory.csv";
+        link.click();
     }
-}
 
-    function importCSV(event) {
-        const file = event.target.files[0];
+    // CSV読み込み
+    function importCSV(e) {
+        const file = e.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
-        reader.onload = async function(e) {
-            const rows = e.target.result.split(/\r?\n/).slice(1);
-            rows.forEach((row, index) => {
-                if (!row.trim()) return;
-                const p = row.split(',').map(cell => cell.replace(/^"(.*)"$/, '$1').replace(/""/g, '"'));
-                if (p.length >= 2) {
+        reader.onload = function(event) {
+            const rows = event.target.result.split('\n').slice(1);
+            rows.forEach(row => {
+                const parts = row.split(',');
+                if (parts.length >= 3) {
                     inventory.push({ 
-                        id: Date.now() + index,
-                        category: p[0] || '電子部品', name: p[1] || '', partNumber: p[2] || '',
-                        qty: parseInt(p[3], 10) || 0, current: p[4] || '', resist: p[5] || '', 
-                        vdc: p[6] || '', cap: p[7] || '', vac: p[8] || '', freq: p[9] || '',
-                        inductance: p[10] || '', size1: p[11] || '', size2: p[12] || '', size3: p[13] || '',
-                        tolerance: p[14] || '', datasheet: p[15] || ''
+                        id: Date.now() + Math.random(), 
+                        category: parts[0].trim(), 
+                        name: parts[1].trim(), 
+                        qty: parseInt(parts[2]) || 0 
                     });
                 }
             });
-            await saveToCloud();
-            event.target.value = '';
+            saveAndRender();
         };
         reader.readAsText(file);
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        loadCloudData();
-    });
+    // 初期化実行
+    renderTable();
 </script>
+
 </body>
 </html>
