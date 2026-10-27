@@ -24,7 +24,7 @@
         .btn-add { background-color: #007bff; color: #ffffff; height: 37px; white-space: nowrap; width: 100%; }
         .btn-csv { background-color: #28a745; color: #ffffff; }
         .btn-secondary { background-color: #6c757d; color: #ffffff; }
-        .btn-danger { background-color: #dc3545; color: #ffffff; margin-left: auto; } /* 右寄せ危険ボタン */
+        .btn-danger { background-color: #dc3545; color: #ffffff; margin-left: auto; }
         .search-group { background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #1a73e8; display: flex; gap: 10px; margin-bottom: 15px; }
         .search-input { flex: 2; border: 1px solid #1a73e8; }
         
@@ -59,7 +59,6 @@
     <h1>回路部品・在庫管理システム</h1>
 
     <div class="panel">
-        <!-- 基本情報 -->
         <div class="form-row">
             <div class="form-group"><label for="itemName">品名</label><input type="text" id="itemName" placeholder="例: インダクタ / 水晶発振器"></div>
             <div class="form-group"><label for="itemPartNumber">型番</label><input type="text" id="itemPartNumber" placeholder="例: MB3759 / NE555"></div>
@@ -76,7 +75,6 @@
             <div class="form-group flex-wide"><label for="valDatasheet">データシート (URL / 備考)</label><input type="text" id="valDatasheet" placeholder="https://example.com/datasheet.pdf"></div>
         </div>
 
-        <!-- 電気特性 -->
         <div class="form-row">
             <div class="form-group"><label>電流</label><div class="unit-input-group"><input type="number" id="valCurrentNum" step="0.01" placeholder="数値"><select id="valCurrentUnit"><option value="mA">mA</option><option value="A">A</option></select></div></div>
             <div class="form-group"><label>抵抗</label><div class="unit-input-group"><input type="number" id="valResistNum" step="0.1" placeholder="数値"><select id="valResistUnit"><option value="Ω">Ω</option><option value="kΩ">kΩ</option><option value="MΩ">MΩ</option></select></div></div>
@@ -87,7 +85,6 @@
             <div class="form-group"><label>インダクタンス</label><div class="unit-input-group"><input type="number" id="valInductanceNum" step="0.01" placeholder="数値"><select id="valInductanceUnit"><option value="μH">μH</option><option value="mH">mH</option><option value="nH">nH</option><option value="H">H</option></select></div></div>
         </div>
 
-        <!-- 外形サイズ・誤差・追加ボタン -->
         <div class="form-row">
             <div class="form-group"><label>サイズ1 (縦/外径)</label><div class="unit-input-group"><input type="number" id="valSize1Num" step="0.01" placeholder="数値"><select id="valSize1Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
             <div class="form-group"><label>サイズ2 (横/内径)</label><div class="unit-input-group"><input type="number" id="valSize2Num" step="0.01" placeholder="数値"><select id="valSize2Unit"><option value="mm">mm</option><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
@@ -132,7 +129,6 @@
 </div>
 
 <script>
-    // ★ここに取得した Web アプリの URL を貼り付けてください (/exec で終わるURL)
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxOpzUcEf1Qw2rMymfxFC1wsUw26Uv6R270GBmgerDDLMgoQbCAF1YNDGtdOyPXdqtRKw/exec";
 
     let inventory = [];
@@ -248,7 +244,6 @@
         }
     }
 
-    /* ★ 全データクリア機能 */
     async function clearAllData() {
         if (inventory.length === 0) {
             alert('削除するデータがありません。');
@@ -302,10 +297,21 @@
             const isUrl = String(dsValue).startsWith('http://') || String(dsValue).startsWith('https://');
             const linkHtml = isUrl ? `<a href="${dsValue}" target="_blank" rel="noopener noreferrer" class="ds-link">開く 🔗</a>` : '';
 
+            // ★ 型番から検索リンクを自動生成する処理
+            const partNum = item.partNumber || '';
+            const searchLinkHtml = partNum.trim() !== '' 
+                ? ` <a href="https://www.google.com/search?q=${encodeURIComponent(partNum + ' datasheet')}" target="_blank" rel="noopener noreferrer" class="ds-link" title="データシートを検索">🔍 検索</a>` 
+                : '';
+
             tr.innerHTML = `
                 <td><span class="badge">${item.category}</span></td>
                 <td><input type="text" class="cell-input" value="${item.name || ''}" onchange="updateField(${item.id}, 'name', this.value)"></td>
-                <td><input type="text" class="cell-input" value="${item.partNumber || ''}" onchange="updateField(${item.id}, 'partNumber', this.value)"></td>
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" class="cell-input" value="${partNum}" onchange="updateField(${item.id}, 'partNumber', this.value)">
+                        ${searchLinkHtml}
+                    </div>
+                </td>
                 <td><input type="number" class="cell-input cell-input-num" value="${item.qty}" onchange="updateField(${item.id}, 'qty', this.value)"></td>
                 <td><input type="text" class="cell-input" value="${item.current || ''}" onchange="updateField(${item.id}, 'current', this.value)"></td>
                 <td><input type="text" class="cell-input" value="${item.resist || ''}" onchange="updateField(${item.id}, 'resist', this.value)"></td>
