@@ -65,6 +65,7 @@
             <div class="form-group">
                 <label for="itemCategory">カテゴリ</label>
                 <select id="itemCategory">
+                    <option value="材料">材料</option>
                     <option value="配線">配線</option>
                     <option value="電子部品">電子部品</option>
                     <option value="締結部品">締結部品</option>
@@ -101,10 +102,12 @@
             <input type="text" id="searchInput" class="search-input" placeholder="品名・型番・規格値・サイズで検索..." oninput="renderTable()">
             <select id="filterCategory" onchange="renderTable()">
                 <option value="all">すべてのカテゴリ</option>
+                <option value="配線">配線</option>
                 <option value="電子部品">電子部品</option>
                 <option value="締結部品">締結部品</option>
                 <option value="スプレー">スプレー</option>
                 <option value="道具">道具</option>
+                <option value="材料">材料</option>
             </select>
             <button class="btn btn-secondary" onclick="loadCloudData()">最新データ取得 🔄</button>
         </div>
